@@ -60,7 +60,7 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
 
     try {
       UploadTask uploadTask =
-          FirebaseStorage.instance.ref(storagePath).putFile(file);
+      FirebaseStorage.instance.ref(storagePath).putFile(file);
       TaskSnapshot snapshot = await uploadTask;
       String downloadUrl = await snapshot.ref.getDownloadURL();
 
@@ -91,10 +91,8 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
         'documents/${widget.phoneNumber}/${widget.documentType}_$side.jpg';
 
     try {
-      // Delete image from Firebase Storage
       await FirebaseStorage.instance.ref(storagePath).delete();
 
-      // Remove the URL from Firestore
       await FirebaseFirestore.instance
           .collection('service_user')
           .doc(widget.phoneNumber)
@@ -118,45 +116,69 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
     }
   }
 
+  void _showPreview(BuildContext context, String imageUrl) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.network(imageUrl),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text("Close"),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('${widget.documentType} Upload')),
       body: Column(
         children: [
-          // Front Image Upload
           ElevatedButton(
             onPressed: () => _pickImage(context, 'front'),
             child: Text('Upload Front Image'),
           ),
           if (frontImageUrl != null)
-            Stack(
-              alignment: Alignment.topRight,
-              children: [
-                Image.network(frontImageUrl!, width: 150, height: 150),
-                IconButton(
-                  icon: Icon(Icons.delete, color: Colors.red),
-                  onPressed: () => deleteImage('front'),
-                ),
-              ],
+            GestureDetector(
+              onTap: () => _showPreview(context, frontImageUrl!),
+              child: Stack(
+                alignment: Alignment.topRight,
+                children: [
+                  Image.network(frontImageUrl!, width: 150, height: 150),
+                  IconButton(
+                    icon: Icon(Icons.delete, color: Colors.red),
+                    onPressed: () => deleteImage('front'),
+                  ),
+                ],
+              ),
             ),
           SizedBox(height: 20),
 
-          // Back Image Upload
           ElevatedButton(
             onPressed: () => _pickImage(context, 'back'),
             child: Text('Upload Back Image'),
           ),
           if (backImageUrl != null)
-            Stack(
-              alignment: Alignment.topRight,
-              children: [
-                Image.network(backImageUrl!, width: 150, height: 150),
-                IconButton(
-                  icon: Icon(Icons.delete, color: Colors.red),
-                  onPressed: () => deleteImage('back'),
-                ),
-              ],
+            GestureDetector(
+              onTap: () => _showPreview(context, backImageUrl!),
+              child: Stack(
+                alignment: Alignment.topRight,
+                children: [
+                  Image.network(backImageUrl!, width: 150, height: 150),
+                  IconButton(
+                    icon: Icon(Icons.delete, color: Colors.red),
+                    onPressed: () => deleteImage('back'),
+                  ),
+                ],
+              ),
             ),
         ],
       ),
