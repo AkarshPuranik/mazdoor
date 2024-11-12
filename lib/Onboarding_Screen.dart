@@ -1,17 +1,19 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mazdoor/Document_Verification_Screen.dart';
 
 class OnboardingScreen extends StatelessWidget {
-  final String userId;
+  final String phoneNumber;
 
-  OnboardingScreen({required this.userId});
+  OnboardingScreen({required this.phoneNumber});
 
   Future<void> _applyForVerification(BuildContext context) async {
+    String? phoneNumber = FirebaseAuth.instance.currentUser?.phoneNumber;
     // Reference to the "onboardingStatus" subcollection inside the user's document
     CollectionReference onboardingStatusCollection = FirebaseFirestore.instance
         .collection('service_user')
-        .doc(userId)
+        .doc(phoneNumber)
         .collection('onboardingStatus');
 
     // Set the onboarding status data in the subcollection
@@ -42,19 +44,28 @@ class OnboardingScreen extends StatelessWidget {
           children: [
             ListTile(
               title: Text("Document Verification"),
+              subtitle: Text(
+                "Police Verification, Pan Card, Aadhar card, Driving License,",
+                style: TextStyle(fontSize: 10),
+              ),
               trailing: Icon(Icons.arrow_forward),
               onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) =>
-                          DocumentVerificationScreen(userId: userId)),
+                      builder: (context) => DocumentVerificationScreen(
+                            phoneNumber: phoneNumber,
+                          )),
                 );
               },
             ),
             Divider(),
             ListTile(
               title: Text("Bank Details"),
+              subtitle: Text(
+                "Add your bank Details",
+                style: TextStyle(fontSize: 10),
+              ),
               trailing: Icon(Icons.arrow_forward),
               onTap: () {
                 // Navigate to Bank Details screen
@@ -63,6 +74,10 @@ class OnboardingScreen extends StatelessWidget {
             Divider(),
             ListTile(
               title: Text("Training Module"),
+              subtitle: Text(
+                "Some Basic training modules for skill development",
+                style: TextStyle(fontSize: 10),
+              ),
               trailing: Icon(Icons.arrow_forward),
               onTap: () {
                 // Navigate to Training Module screen
@@ -71,6 +86,10 @@ class OnboardingScreen extends StatelessWidget {
             Divider(),
             ListTile(
               title: Text("Verify Vaccination Status"),
+              subtitle: Text(
+                "Health Safety",
+                style: TextStyle(fontSize: 10),
+              ),
               trailing: Icon(Icons.arrow_forward),
               onTap: () {
                 // Navigate to Vaccination Status screen
@@ -79,6 +98,10 @@ class OnboardingScreen extends StatelessWidget {
             Divider(),
             ListTile(
               title: Text("About you"),
+              subtitle: Text(
+                "Lets know more about you",
+                style: TextStyle(fontSize: 10),
+              ),
               trailing: Icon(Icons.arrow_forward),
               onTap: () {
                 // Navigate to About You screen

@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:mazdoor/address_proof.dart';
-import 'package:mazdoor/adhar.dart';
-import 'package:mazdoor/police_verification.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:mazdoor/document_uplaod_screen.dart';
 
 class DocumentVerificationScreen extends StatefulWidget {
-  final String userId;
-
-  const DocumentVerificationScreen({required this.userId});
+  final String phoneNumber;
+  const DocumentVerificationScreen({super.key, required this.phoneNumber});
 
   @override
   _DocumentVerificationScreenState createState() =>
@@ -16,102 +14,90 @@ class DocumentVerificationScreen extends StatefulWidget {
 
 class _DocumentVerificationScreenState
     extends State<DocumentVerificationScreen> {
-  bool aadharCard = false;
-  bool addressProof = false;
-  bool policeVerification = false;
+  final List<String> documentTypes = [
+    "AadharCard",
+    "AddressProof",
+    "PoliceVerification"
+  ];
+  String? phoneNumber;
 
-  Future<void> _saveVerificationData() async {
-    await FirebaseFirestore.instance
-        .collection('service_user')
-        .doc(widget.userId)
-        .update({
-      'documentVerification': {
-        'aadharCard': aadharCard,
-        'addressProof': addressProof,
-        'policeVerification': policeVerification,
-      },
-    });
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text('Document verification saved')));
+  @override
+  void initState() {
+    super.initState();
+    phoneNumber = FirebaseAuth.instance.currentUser?.phoneNumber;
   }
 
-  void _navigateToScreen(String documentType) {
-    Widget screen;
-
-    switch (documentType) {
-      case 'Aadhar Card':
-        screen = Adhar(); // Navigate to ExampleScreen1
-        break;
-      case 'Address Proof':
-        screen = AddressProof(); // Navigate to ExampleScreen2
-        break;
-      case 'Police Verification':
-        screen = PoliceVerification(); // Navigate to ExampleScreen3
-        break;
-      default:
-        return; // No navigation if the type is unknown
+  Future<Map<String, bool>> getDocumentStatus() async {
+    if (phoneNumber == null) {
+      return {}; // Return an empty map if no phone number is found.
     }
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => screen),
-    );
+    Map<String, bool> documentStatus = {};
+
+    for (var docType in documentTypes) {
+      DocumentSnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore
+          .instance
+          .collection('service_user')
+          .doc(phoneNumber)
+          .collection('document_verification')
+          .doc(docType)
+          .get();
+
+      bool isUploaded = snapshot.exists &&
+          snapshot.data()?['frontImageUrl'] != null &&
+          snapshot.data()?['backImageUrl'] != null;
+
+      documentStatus[docType] = isUploaded;
+    }
+
+    return documentStatus;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Document Verification'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            CheckboxListTile(
-              title: Text("Aadhar Card"),
-              value: aadharCard,
-              onChanged: (value) {
-                setState(() {
-                  aadharCard = value!;
-                });
-                if (value!) {
-                  _navigateToScreen("Aadhar Card");
-                }
+      appBar: AppBar(title: Text("Document Verification")),
+      body: FutureBuilder<Map<String, bool>>(
+        future: getDocumentStatus(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text("Error loading document statuses"));
+          } else {
+            Map<String, bool> documentStatus = snapshot.data ?? {};
+
+            return ListView.builder(
+              itemCount: documentTypes.length,
+              itemBuilder: (context, index) {
+                String docType = documentTypes[index];
+                bool isUploaded = documentStatus[docType] ?? false;
+
+                return ListTile(
+                  title: Text(docType),
+                  trailing: Icon(
+                    isUploaded ? Icons.check_circle : Icons.cancel,
+                    color: isUploaded ? Colors.green : Colors.red,
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => DocumentUploadScreen(
+                          documentType: docType,
+                          phoneNumber: phoneNumber!,
+                        ),
+                      ),
+                    ).then((_) {
+                      setState(
+                          () {}); // Refresh status when returning to this screen.
+                    });
+                  },
+                );
               },
-            ),
-            CheckboxListTile(
-              title: Text("Address Proof"),
-              value: addressProof,
-              onChanged: (value) {
-                setState(() {
-                  addressProof = value!;
-                });
-                if (value!) {
-                  _navigateToScreen("Address Proof");
-                }
-              },
-            ),
-            CheckboxListTile(
-              title: Text("Police Verification"),
-              value: policeVerification,
-              onChanged: (value) {
-                setState(() {
-                  policeVerification = value!;
-                });
-                if (value!) {
-                  _navigateToScreen("Police Verification");
-                }
-              },
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _saveVerificationData,
-              child: Text("Save Verification Data"),
-            ),
-          ],
-        ),
+            );
+          }
+        },
       ),
     );
   }

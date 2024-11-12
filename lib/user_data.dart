@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mazdoor/location_screen.dart';
@@ -14,12 +15,17 @@ class _UserDetailsFormScreenState extends State<UserDetailsFormScreen> {
   bool _termsAccepted = false;
 
   Future<void> _saveUserData() async {
-    if (_nameController.text.isNotEmpty &&
+    String? phoneNumber = FirebaseAuth.instance.currentUser?.phoneNumber;
+    if (phoneNumber != null &&
+        _nameController.text.isNotEmpty &&
         _workController.text.isNotEmpty &&
         _cityController.text.isNotEmpty &&
         _termsAccepted) {
-      // Save user data to Firestore
-      await FirebaseFirestore.instance.collection('service_user').add({
+      // Save user data to Firestore using phone number as document ID
+      await FirebaseFirestore.instance
+          .collection('service_user')
+          .doc(phoneNumber)
+          .set({
         'name': _nameController.text,
         'work': _workController.text,
         'city': _cityController.text,

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:mazdoor/Document_Verification_Screen.dart';
+import 'package:mazdoor/Onboarding_Screen.dart';
 
 class LocationScreen extends StatefulWidget {
   const LocationScreen({super.key});
@@ -44,8 +45,7 @@ class _LocationScreenState extends State<LocationScreen> {
         Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-                builder: (context) =>
-                    DocumentVerificationScreen(userId: userId)));
+                builder: (context) => OnboardingScreen(phoneNumber: userId)));
       });
     } catch (e) {
       setState(() {
