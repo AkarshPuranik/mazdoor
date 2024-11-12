@@ -14,57 +14,71 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    final screenHeight = mediaQuery.size.height;
+    final screenWidth = mediaQuery.size.width;
+
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 60.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              'Select Your Language',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: screenWidth * 0.06,
+            vertical: screenHeight * 0.08,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                'Select Your Language',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: screenWidth * 0.06,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
               ),
-            ),
-            SizedBox(height: 4),
-            Text(
-              'From the below',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey,
+              SizedBox(height: screenHeight * 0.01),
+              Text(
+                'From the below',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: screenWidth * 0.045,
+                  color: Colors.grey,
+                ),
               ),
-            ),
-            SizedBox(height: 30),
-            Expanded(
-              child: GridView.count(
-                crossAxisCount: 2,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 2.5,
-                children: [
-                  _buildLanguageOption('English'),
-                  _buildLanguageOption('हिन्दी'),
-                  _buildLanguageOption('Hinglish'),
-                ],
+              SizedBox(height: screenHeight * 0.05),
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: screenHeight * 0.5,
+                ),
+                child: GridView.count(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 2.5,
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  children: [
+                    _buildLanguageOption('English'),
+                    _buildLanguageOption('हिन्दी'),
+                    _buildLanguageOption('Hinglish'),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(screenWidth * 0.04),
         child: SizedBox(
           width: double.infinity,
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.black,
-              padding: EdgeInsets.symmetric(vertical: 16),
+              padding: EdgeInsets.symmetric(vertical: screenHeight * 0.02),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -106,7 +120,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
             },
             child: Text(
               'Proceed',
-              style: TextStyle(fontSize: 18, color: Colors.white),
+              style: TextStyle(fontSize: screenWidth * 0.05, color: Colors.white),
             ),
           ),
         ),
@@ -115,6 +129,10 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
   }
 
   Widget _buildLanguageOption(String language) {
+    final mediaQuery = MediaQuery.of(context);
+    final screenWidth = mediaQuery.size.width;
+    final screenHeight = mediaQuery.size.height;
+
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -122,10 +140,12 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
         });
       },
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+        padding: EdgeInsets.symmetric(
+          vertical: screenHeight * 0.02,
+          horizontal: screenWidth * 0.04,
+        ),
         decoration: BoxDecoration(
-          color:
-              _selectedLanguage == language ? Colors.grey[200] : Colors.white,
+          color: _selectedLanguage == language ? Colors.grey[200] : Colors.white,
           border: Border.all(color: Colors.black),
           borderRadius: BorderRadius.circular(8),
         ),
@@ -134,7 +154,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
           children: [
             Text(
               language,
-              style: TextStyle(fontSize: 18),
+              style: TextStyle(fontSize: screenWidth * 0.045),
             ),
             Radio<String>(
               value: language,
