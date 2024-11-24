@@ -2,30 +2,112 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mazdoor/Document_Verification_Screen.dart';
+import 'package:mazdoor/home_screen.dart';
 
 class OnboardingScreen extends StatelessWidget {
-  final String phoneNumber;
+  String phoneNumber = FirebaseAuth.instance.currentUser?.phoneNumber ?? '';
+  String userId = FirebaseAuth.instance.currentUser?.phoneNumber ?? '';
 
-  OnboardingScreen({required this.phoneNumber});
+  OnboardingScreen({
+    super.key,
+  });
 
+  Future<void> checkDocumentStatuses(BuildContext context) async {
+    try {
+      // Fetch the statuses of required documents
+      final aadharDoc = await FirebaseFirestore.instance
+          .collection('service_user')
+          .doc(userId)
+          .collection('document_verification')
+          .doc('AadharCard')
+          .get();
+      final addressProofDoc = await FirebaseFirestore.instance
+          .collection('service_user')
+          .doc(userId)
+          .collection('document_verification')
+          .doc('AddressProof')
+          .get();
+      final policeVerificationDoc = await FirebaseFirestore.instance
+          .collection('service_user')
+          .doc(userId)
+          .collection('document_verification')
+          .doc('PoliceVerification')
+          .get();
+
+      // Print the fetched data in the debug console for debugging
+      print("AadharCard: ${aadharDoc.data()}");
+      print("AadharCard Status: ${aadharDoc['status']}");
+      print("AddressProof: ${addressProofDoc.data()}");
+      print("AddressProof Status: ${addressProofDoc['status']}");
+      print("PoliceVerification: ${policeVerificationDoc.data()}");
+      print("PoliceVerification Status: ${policeVerificationDoc['status']}");
+
+      // Check if all statuses are 'approved'
+      if (aadharDoc.exists &&
+          addressProofDoc.exists &&
+          policeVerificationDoc.exists &&
+          aadharDoc['status']?.toLowerCase() == 'approved' &&
+          addressProofDoc['status']?.toLowerCase() == 'approved' &&
+          policeVerificationDoc['status']?.toLowerCase() == 'approved') {
+        // All documents approved, navigate directly to home screen
+        print("All documents are approved. Navigating to home screen...");
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomeScreen()),
+        );
+      } else {
+        // Show a message if any document is not approved
+        print("Not all documents are approved.");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('All documents must be approved!')),
+        );
+      }
+    } catch (e) {
+      print('Error checking document statuses: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error checking document statuses.')),
+      );
+    }
+  }
+
+  // Function to apply for verification and update onboarding status
   Future<void> _applyForVerification(BuildContext context) async {
-    String? phoneNumber = FirebaseAuth.instance.currentUser?.phoneNumber;
-    CollectionReference onboardingStatusCollection = FirebaseFirestore.instance
-        .collection('service_user')
-        .doc(phoneNumber)
-        .collection('onboardingStatus');
+    String phoneNumber = FirebaseAuth.instance.currentUser?.phoneNumber ?? '';
+    if (phoneNumber.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("User not logged in. Please log in again.")),
+      );
+      return;
+    }
 
-    await onboardingStatusCollection.doc('status').set({
-      'documentVerification': 'Complete',
-      'bankDetails': 'Complete',
-      'trainingModule': 'In Progress',
-      'vaccinationStatus': 'Verified',
-      'aboutYou': 'Short description here',
-    });
+    try {
+      // Set onboarding status in Firestore
+      CollectionReference onboardingStatusCollection = FirebaseFirestore
+          .instance
+          .collection('service_user')
+          .doc(phoneNumber)
+          .collection('onboardingStatus');
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Verification status updated")),
-    );
+      await onboardingStatusCollection.doc('status').set({
+        'documentVerification': 'Complete',
+        'bankDetails': 'Complete',
+        'trainingModule': 'In Progress',
+        'vaccinationStatus': 'Verified',
+        'aboutYou': 'Short description here',
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Verification status updated")),
+      );
+
+      // After updating, check document statuses
+      await checkDocumentStatuses(context);
+    } catch (e) {
+      print('Error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error updating verification status.")),
+      );
+    }
   }
 
   @override
@@ -65,8 +147,8 @@ class OnboardingScreen extends StatelessWidget {
                           context,
                           MaterialPageRoute(
                               builder: (context) => DocumentVerificationScreen(
-                                phoneNumber: phoneNumber,
-                              )),
+                                    phoneNumber: phoneNumber,
+                                  )),
                         );
                       },
                     ),
@@ -83,6 +165,7 @@ class OnboardingScreen extends StatelessWidget {
                       trailing: Icon(Icons.arrow_forward),
                       onTap: () {
                         // Navigate to Bank Details screen
+                        // Implement the navigation
                       },
                     ),
                     Divider(),
@@ -98,6 +181,7 @@ class OnboardingScreen extends StatelessWidget {
                       trailing: Icon(Icons.arrow_forward),
                       onTap: () {
                         // Navigate to Training Module screen
+                        // Implement the navigation
                       },
                     ),
                     Divider(),
@@ -113,6 +197,7 @@ class OnboardingScreen extends StatelessWidget {
                       trailing: Icon(Icons.arrow_forward),
                       onTap: () {
                         // Navigate to Vaccination Status screen
+                        // Implement the navigation
                       },
                     ),
                     Divider(),
@@ -128,17 +213,20 @@ class OnboardingScreen extends StatelessWidget {
                       trailing: Icon(Icons.arrow_forward),
                       onTap: () {
                         // Navigate to About You screen
+                        // Implement the navigation
                       },
                     ),
                     SizedBox(height: deviceHeight * 0.02),
                     ElevatedButton(
-                      onPressed: () => _applyForVerification(context),
-                      child: Text("Apply for verification", style: TextStyle(fontSize: fontSizeMedium)),
+                      onPressed: () => checkDocumentStatuses(context),
+                      child: Text("Apply for verification",
+                          style: TextStyle(fontSize: fontSizeMedium)),
                     ),
                     SizedBox(height: deviceHeight * 0.01),
                     Text(
                       "Usually verification happens within 72 hours. You may still use the app with limited access.",
-                      style: TextStyle(fontSize: fontSizeSmall, color: Colors.grey),
+                      style: TextStyle(
+                          fontSize: fontSizeSmall, color: Colors.grey),
                       textAlign: TextAlign.center,
                     ),
                   ],

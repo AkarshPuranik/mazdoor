@@ -2,7 +2,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:mazdoor/Document_Verification_Screen.dart';
 import 'package:mazdoor/Onboarding_Screen.dart';
 
 class LocationScreen extends StatefulWidget {
@@ -42,10 +41,8 @@ class _LocationScreenState extends State<LocationScreen> {
 
       // Wait for 3 seconds, then navigate to the home page
       Future.delayed(Duration(seconds: 3), () {
-        Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-                builder: (context) => OnboardingScreen(phoneNumber: userId)));
+        Navigator.pushReplacement(context,
+            MaterialPageRoute(builder: (context) => OnboardingScreen()));
       });
     } catch (e) {
       setState(() {

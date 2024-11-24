@@ -8,7 +8,7 @@ import 'package:mazdoor/home_splash.dart';
 class OTP extends StatefulWidget {
   final String verificationId;
 
-  OTP({required this.verificationId});
+  const OTP({super.key, required this.verificationId});
 
   @override
   _OTPState createState() => _OTPState();

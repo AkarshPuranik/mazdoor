@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:mazdoor/Document_Verification_Screen.dart';
-import 'package:mazdoor/select_langugae.dart';
 import 'package:mazdoor/user_data.dart';
 
 class HomeSplash extends StatefulWidget {
+  const HomeSplash({super.key});
+
   @override
   _HomeSplashState createState() => _HomeSplashState();
 }
